@@ -1,0 +1,103 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "ASS",
+    "scopeName": "source.ass",
+    "patterns": [
+        {
+            "_comment": "1. 全局分号注释：匹配以分号 ; 开头的整行，将其渲染为标准注释",
+            "name": "comment.line.semicolon.ass",
+            "match": "^\\s*;.*$"
+        },
+        {
+            "_comment": "2. 节标题：匹配 [Script Info], [Events] 等区块，渲染为控制关键字",
+            "name": "keyword.control.section.ass",
+            "match": "^\\s*(\\[(?:Script Info|V4\\+ Styles|V4\\+\\+ Styles|V4 Styles|Fonts|Events|Aegisub[^\\]]*)\\])"
+        },
+        {
+            "_comment": "3. 行首属性：匹配所有全局属性（如 PlayResX、WrapStyle 等）",
+            "match": "^\\s*(ScriptType|ScaledBorderAndShadow|YCbCr Matrix|PlayResX|PlayResY|LayoutResX|LayoutResY|WrapStyle|Title|Original Script|Original Translation|Original Editing|Original Timing|Script Updated By|Update Details|!|Format|fontname):",
+            "captures": {
+                "1": {
+                    "name": "keyword.control.ass"
+                }
+            }
+        },
+        {
+            "_comment": "4. 样式定义：提取 Style 关键字，并独立高亮紧跟其后的样式名称",
+            "match": "^\\s*(Style):\\s*([^,]*)",
+            "captures": {
+                "1": { "name": "keyword.control.ass" },
+                "2": { "name": "entity.name.type.class.ass" }
+            }
+        },
+        {
+            "_comment": "5. 注释事件行 (Comment)：拦截前 9 个参数，并将第 10 个捕获组(文本内容)渲染为注释颜色",
+            "match": "^\\s*(Comment):\\s*([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),(.*)$",
+            "captures": {
+                "1": { "name": "keyword.control.ass" },
+                "2": { "name": "constant.numeric.integer.ass" },
+                "3": { "name": "constant.numeric.time.ass" },
+                "4": { "name": "constant.numeric.time.ass" },
+                "5": { "name": "entity.name.type.class.ass" },
+                "10": { "name": "comment.line.ass" }
+            }
+        },
+        {
+            "_comment": "6. 正常对话事件行 (Dialogue)：不干涉末尾的文本，留给特效标签处理",
+            "match": "^\\s*(Dialogue):\\s*([^,]*),([^,]*),([^,]*),([^,]*),",
+            "captures": {
+                "1": { "name": "keyword.control.ass" },
+                "2": { "name": "constant.numeric.integer.ass" },
+                "3": { "name": "constant.numeric.time.ass" },
+                "4": { "name": "constant.numeric.time.ass" },
+                "5": { "name": "entity.name.type.class.ass" }
+            }
+        },
+        {
+            "_comment": "7. 时间常量：匹配 h:mm:ss.dd 格式",
+            "name": "constant.numeric.time.ass",
+            "match": "\\b\\d{1,3}:\\d{2}:\\d{2}\\.\\d{2}\\b"
+        },
+        {
+            "_comment": "8. 文本中的基础转义符：如 \\N, \\n, \\h",
+            "name": "constant.character.escape.ass",
+            "match": "\\\\[Nnh]"
+        },
+        {
+            "_comment": "9. 大括号内特效标签 (Override Tags) 的处理范围",
+            "name": "keyword.other.ass.tag",
+            "begin": "\\{",
+            "end": "\\}",
+            "patterns": [
+                {
+                    "_comment_pattern": "匹配 \\r 样式重置标签，并高亮其后的样式名",
+                    "match": "(\\\\r)([^\\\\}]+)",
+                    "captures": {
+                        "1": { "name": "constant.character.escape.ass" },
+                        "2": { "name": "entity.name.type.class.ass" }
+                    }
+                },
+                {
+                    "_comment_pattern": "匹配普通特效命令",
+                    "name": "constant.character.escape.ass",
+                    "match": "\\\\[a-zA-Z0-9]+"
+                },
+                {
+                    "_comment_pattern": "匹配颜色代码",
+                    "name": "constant.color.hex.ass",
+                    "match": "&H[0-9a-fA-F]+&?"
+                },
+                {
+                    "_comment_pattern": "匹配特效数值参数",
+                    "name": "constant.numeric.parameter.ass",
+                    "match": "-?\\d+(\\.\\d+)?"
+                },
+                {
+                    "_comment_pattern": "匹配括号和逗号分隔符",
+                    "name": "punctuation.separator.ass",
+                    "match": "[(),]"
+                }
+            ]
+        }
+    ]
+}
